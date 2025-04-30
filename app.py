@@ -44,6 +44,7 @@ def main():
         
         # להסיר webhook קיים ולהפעיל long polling
         bot.remove_webhook()
+        print('שלב 1')
         time.sleep(1)
         
         # הרצת הבוט - בדיקה אם רץ בסביבת Render
@@ -51,17 +52,19 @@ def main():
             # הגדרת webhook עבור Render
             PORT = int(os.environ.get('PORT', 5000))
             WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
-            
+            print('שלב 2')
             bot.set_webhook(url=WEBHOOK_URL)
             # הפעלת שרת webhook
             from flask import Flask, request
-            
+            print('שלב 3')
             app = Flask(__name__)
-            
+            print('שלב 4')
             @app.route('/' + API_TOKEN, methods=['POST'])
             def webhook():
+                print('שלב 5')
                 update = telebot.types.Update.de_json(request.stream.read().decode('utf-8'))
                 bot.process_new_updates([update])
+                print('שלב 6')
                 return ''
             
             @app.route('/')
@@ -79,4 +82,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-### test
