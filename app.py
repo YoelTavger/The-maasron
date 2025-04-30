@@ -48,32 +48,48 @@ def main():
         time.sleep(1)
         
         # הרצת הבוט - בדיקה אם רץ בסביבת Render
-        if os.environ.get('RENDER'):
+        if os.environ.get('RENDER', '').lower() == 'true':
+            print(f"הפעלה במצב webhook בסביבת Render")
+            
             # הגדרת webhook עבור Render
-            PORT = int(os.environ.get('PORT', 5000))
+            PORT = int(os.environ.get('PORT', 10000))  # שים לב שב-Render הפורט ברירת המחדל הוא 10000
             WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
-            print('שלב 2')
+            
+            if not WEBHOOK_URL:
+                print("אזהרה: WEBHOOK_URL לא מוגדר. משתמש בכתובת ברירת מחדל.")
+                SERVICE_URL = os.environ.get('RENDER_EXTERNAL_URL', f"https://{os.environ.get('RENDER_SERVICE_NAME')}.onrender.com")
+                WEBHOOK_URL = f"{SERVICE_URL}/{API_TOKEN}"
+            
+            print(f"מגדיר webhook בכתובת: {WEBHOOK_URL}")
+            bot.remove_webhook()
+            time.sleep(0.5)
             bot.set_webhook(url=WEBHOOK_URL)
-            # הפעלת שרת webhook
+            
             from flask import Flask, request
-            print('שלב 3')
             app = Flask(__name__)
-            print('שלב 4')
+            
             @app.route('/' + API_TOKEN, methods=['POST'])
             def webhook():
-                print('שלב 5')
-                update = telebot.types.Update.de_json(request.stream.read().decode('utf-8'))
-                bot.process_new_updates([update])
-                print('שלב 6')
-                return ''
+                try:
+                    print(f"התקבלה בקשת webhook!")
+                    json_string = request.get_data().decode('utf-8')
+                    update = telebot.types.Update.de_json(json_string)
+                    bot.process_new_updates([update])
+                    return ''
+                except Exception as e:
+                    print(f"שגיאה בטיפול ב-webhook: {e}")
+                    return 'error'
             
             @app.route('/')
             def index():
                 return "בוט פעיל!"
             
+            print(f"מפעיל שרת Flask על פורט {PORT}")
             app.run(host='0.0.0.0', port=PORT)
         else:
-            # הרצה רגילה עם polling
+            print("הפעלה במצב polling בסביבה מקומית")
+            bot.remove_webhook()
+            time.sleep(0.5)
             bot.infinity_polling(timeout=60, long_polling_timeout=60)
     except KeyboardInterrupt:
         print("הבוט הופסק על ידי המשתמש.")
