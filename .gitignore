@@ -6,6 +6,7 @@ env/
 
 # קבצי נתונים
 *.csv
+data/
 
 # קבצי Python נפוצים להתעלמות
 __pycache__/
