@@ -52,7 +52,7 @@ def main():
             print(f"הפעלה במצב webhook בסביבת Render")
             
             # הגדרת webhook עבור Render
-            PORT = int(os.environ.get('PORT', 10000))  # שים לב שב-Render הפורט ברירת המחדל הוא 10000
+            PORT = int(os.environ.get('PORT', 10000))
             WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
             
             if not WEBHOOK_URL:
