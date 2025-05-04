@@ -39,9 +39,7 @@ def register_household_handlers(bot):
         
         # קבלת מזהה משק הבית של המשתמש
         household_id = get_user_household(user_id)
-        household_info = get_household_info(household_id)
-        household_name = household_info['name']
-        share_text = f"הצטרף למשק הבית - '{household_name}' בבוט מעשרות! קוד ההצטרפות: `{household_id}`"
+        share_text = f"הצטרף למשק הבית שלנו בבוט מעשרות! קוד ההצטרפות: `{household_id}`"
         share_url = f"https://t.me/share/url?url={share_text}"
         
         if not household_id:
