@@ -1,8 +1,9 @@
 import telebot
 import os
 import time
-from config import API_TOKEN, DATA_DIR
-from utils.file_handlers import ensure_files_exist
+from config import API_TOKEN, IS_RENDER, WEBHOOK_URL, PORT
+from database.connection import init_database, test_connection
+from database.reset_database import reset_database
 from handlers.common import register_handlers
 from handlers.maaser_handlers import register_maaser_handlers
 from handlers.donation_handlers import register_donation_handlers
@@ -17,12 +18,17 @@ def main():
     if not API_TOKEN:
         raise ValueError("חסר טוקן API! וודא שקובץ .env מוגדר כראוי.")
     
-    # יצירת תיקיית נתונים אם לא קיימת
-    if not os.path.exists(DATA_DIR):
-        os.makedirs(DATA_DIR)
+    # בדיקת חיבור למסד הנתונים
+    print("בודק חיבור למסד נתונים PostgreSQL...")
+    if not test_connection():
+        raise ValueError("לא ניתן להתחבר למסד הנתונים. בדוק את פרטי ההתחברות ב-ENV.")
     
-    # וידוא קיום קבצי נתונים
-    ensure_files_exist()
+    # מוחק מסד נתונים
+    #reset_database()
+
+    # אתחול מסד הנתונים
+    print("מאתחל מסד נתונים...")
+    init_database()
     
     # יצירת מופע הבוט
     bot = telebot.TeleBot(API_TOKEN)
@@ -42,54 +48,48 @@ def main():
     try:
         print("הבוט מופעל! לחץ Ctrl+C כדי לעצור.")
         
-        # להסיר webhook קיים ולהפעיל long polling
-        bot.remove_webhook()
-        print('שלב 1')
-        time.sleep(1)
-        
-        # הרצת הבוט - בדיקה אם רץ בסביבת Render
-        if os.environ.get('RENDER', '').lower() == 'true':
-            print(f"הפעלה במצב webhook בסביבת Render")
-            
+        # בחירת מצב הפעלה לפי הסביבה (webhook לרנדר או polling מקומי)
+        if IS_RENDER:
             # הגדרת webhook עבור Render
-            PORT = int(os.environ.get('PORT', 10000))
-            WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
+            print(f"מפעיל במצב webhook עבור Render")
             
             if not WEBHOOK_URL:
-                print("אזהרה: WEBHOOK_URL לא מוגדר. משתמש בכתובת ברירת מחדל.")
-                SERVICE_URL = os.environ.get('RENDER_EXTERNAL_URL', f"https://{os.environ.get('RENDER_SERVICE_NAME')}.onrender.com")
-                WEBHOOK_URL = f"{SERVICE_URL}/{API_TOKEN}"
+                print("אזהרה: WEBHOOK_URL לא מוגדר. ייתכן שהבוט לא יעבוד כראוי.")
+                # השתמש בכתובת ברירת מחדל אם לא הוגדרה
+                webhook_url = f"https://{os.environ.get('RENDER_SERVICE_NAME')}.onrender.com/{API_TOKEN}"
+            else:
+                webhook_url = WEBHOOK_URL
             
-            print(f"מגדיר webhook בכתובת: {WEBHOOK_URL}")
+            # הסרת webhook קיים והגדרת webhook חדש
             bot.remove_webhook()
-            time.sleep(0.5)
-            bot.set_webhook(url=WEBHOOK_URL)
+            time.sleep(1)
+            bot.set_webhook(url=webhook_url)
             
+            # הפעלת שרת Flask לקבלת עדכונים
             from flask import Flask, request
             app = Flask(__name__)
             
             @app.route('/' + API_TOKEN, methods=['POST'])
             def webhook():
                 try:
-                    print(f"התקבלה בקשת webhook!")
-                    json_string = request.get_data().decode('utf-8')
-                    update = telebot.types.Update.de_json(json_string)
+                    update = telebot.types.Update.de_json(request.stream.read().decode('utf-8'))
                     bot.process_new_updates([update])
                     return ''
                 except Exception as e:
-                    print(f"שגיאה בטיפול ב-webhook: {e}")
+                    print(f"שגיאה בטיפול בעדכון: {e}")
                     return 'error'
             
             @app.route('/')
             def index():
-                return "בוט פעיל!"
+                return "בוט מעשרות פעיל!"
             
-            print(f"מפעיל שרת Flask על פורט {PORT}")
+            # הפעלת שרת
             app.run(host='0.0.0.0', port=PORT)
         else:
-            print("הפעלה במצב polling בסביבה מקומית")
+            # הפעלה במצב polling (מקומי)
+            print("מפעיל במצב polling")
             bot.remove_webhook()
-            time.sleep(0.5)
+            time.sleep(1)
             bot.infinity_polling(timeout=60, long_polling_timeout=60)
     except KeyboardInterrupt:
         print("הבוט הופסק על ידי המשתמש.")

@@ -1,11 +1,9 @@
-import csv
-import os
-from config import DONATIONS_FILE
-from utils.helpers import get_current_datetime_str
+from database.connection import execute_query
+from datetime import datetime
 
 def add_donation(user_id, amount, purpose, method):
     """
-    מוסיף תרומה שבוצעה
+    מוסיף תרומה חדשה
     
     Args:
         user_id: מזהה המשתמש
@@ -17,11 +15,23 @@ def add_donation(user_id, amount, purpose, method):
         bool: האם הפעולה הצליחה
     """
     try:
-        with open(DONATIONS_FILE, 'a', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            donation_date = get_current_datetime_str()
-            writer.writerow([user_id, amount, purpose, donation_date, method])
-        return True
+        # וודא שמזהה המשתמש הוא מחרוזת
+        user_id_str = str(user_id)
+        
+        print(f"מנסה להוסיף תרומה: סכום={amount}, מטרה={purpose}, משתמש={user_id_str}")
+        
+        query = "INSERT INTO donations (user_id, amount, purpose, donation_date, donation_method) VALUES (%s, %s, %s, %s, %s) RETURNING id"
+        donation_date = datetime.now().strftime('%Y-%m-%d %H:%M')
+        params = (user_id_str, float(amount), purpose, donation_date, method)
+        
+        result = execute_query(query, params, fetch=True, fetch_one=True)
+        
+        if result and 'id' in result:
+            print(f"תרומה נוספה בהצלחה עם מזהה {result['id']}")
+            return True
+        else:
+            print("לא הוחזר מזהה אחרי הוספת התרומה")
+            return False
     except Exception as e:
         print(f"שגיאה בהוספת תרומה: {e}")
         return False
@@ -36,24 +46,23 @@ def get_user_donations(user_id):
     Returns:
         list: רשימת התרומות
     """
-    donations = []
     try:
-        if os.path.exists(DONATIONS_FILE):
-            with open(DONATIONS_FILE, 'r', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                next(reader)  # דילוג על הכותרת
-                for row in reader:
-                    if row and row[0] == str(user_id):
-                        try:
-                            amount = float(row[1])
-                            donations.append({
-                                'amount': amount,
-                                'purpose': row[2],
-                                'date': row[3],
-                                'method': row[4] if len(row) > 4 else "לא צוין"
-                            })
-                        except (ValueError, IndexError):
-                            continue
+        # וודא שמזהה המשתמש הוא מחרוזת
+        user_id_str = str(user_id)
+        
+        query = "SELECT * FROM donations WHERE user_id = %s ORDER BY donation_date DESC"
+        donation_results = execute_query(query, (user_id_str,), fetch=True)
+        
+        donations = []
+        for row in donation_results:
+            donations.append({
+                'id': row['id'],
+                'amount': float(row['amount']),
+                'purpose': row['purpose'],
+                'date': row['donation_date'],
+                'method': row['donation_method']
+            })
+        
         return donations
     except Exception as e:
         print(f"שגיאה בקבלת התרומות: {e}")

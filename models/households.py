@@ -1,8 +1,6 @@
-import csv
-import os
 import time
-from config import HOUSEHOLDS_FILE, USERS_FILE
-from utils.helpers import get_current_datetime_str
+from database.connection import execute_query
+from datetime import datetime
 
 def create_household(name, owner_id):
     """
@@ -16,12 +14,25 @@ def create_household(name, owner_id):
         str או None: מזהה משק הבית החדש אם הצליח
     """
     try:
+        # וודא שמזהה הבעלים הוא מחרוזת
+        owner_id_str = str(owner_id)
+        
+        print(f"מנסה ליצור משק בית חדש: שם={name}, בעלים={owner_id_str}")
+        
         household_id = str(int(time.time()))  # מזהה ייחודי מבוסס זמן
-        with open(HOUSEHOLDS_FILE, 'a', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            creation_date = get_current_datetime_str()
-            writer.writerow([household_id, name, creation_date, owner_id])
-        return household_id
+        creation_date = datetime.now().strftime('%Y-%m-%d %H:%M')
+        
+        query = "INSERT INTO households (household_id, name, creation_date, owner_id) VALUES (%s, %s, %s, %s) RETURNING household_id"
+        params = (household_id, name, creation_date, owner_id_str)
+        
+        result = execute_query(query, params, fetch=True, fetch_one=True)
+        
+        if result and 'household_id' in result:
+            print(f"משק בית נוצר בהצלחה עם מזהה {result['household_id']}")
+            return result['household_id']
+        else:
+            print("לא הוחזר מזהה אחרי יצירת משק הבית")
+            return None
     except Exception as e:
         print(f"שגיאה ביצירת משק בית: {e}")
         return None
@@ -37,18 +48,16 @@ def get_household_info(household_id):
         dict או None: פרטי משק הבית
     """
     try:
-        if os.path.exists(HOUSEHOLDS_FILE):
-            with open(HOUSEHOLDS_FILE, 'r', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                next(reader)  # דילוג על הכותרת
-                for row in reader:
-                    if row and row[0] == household_id:
-                        return {
-                            'id': row[0],
-                            'name': row[1],
-                            'creation_date': row[2],
-                            'owner_id': row[3] if len(row) > 3 else None
-                        }
+        query = "SELECT * FROM households WHERE household_id = %s"
+        result = execute_query(query, (household_id,), fetch=True, fetch_one=True)
+        
+        if result:
+            return {
+                'id': result['household_id'],
+                'name': result['name'],
+                'creation_date': result['creation_date'],
+                'owner_id': result['owner_id']
+            }
         return None
     except Exception as e:
         print(f"שגיאה בקבלת פרטי משק בית: {e}")
@@ -66,19 +75,17 @@ def get_household_members(household_id):
     """
     members = []
     try:
-        if os.path.exists(USERS_FILE):
-            with open(USERS_FILE, 'r', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                next(reader)  # דילוג על הכותרת
-                for row in reader:
-                    if row and len(row) > 5 and row[5] == household_id:
-                        members.append({
-                            'user_id': row[0],
-                            'username': row[1],
-                            'first_name': row[2],
-                            'last_name': row[3],
-                            'join_date': row[4]
-                        })
+        query = "SELECT user_id, username, first_name, last_name, join_date FROM users WHERE household_id = %s"
+        results = execute_query(query, (household_id,), fetch=True)
+        
+        for row in results:
+            members.append({
+                'user_id': row['user_id'],
+                'username': row['username'],
+                'first_name': row['first_name'],
+                'last_name': row['last_name'],
+                'join_date': row['join_date']
+            })
         return members
     except Exception as e:
         print(f"שגיאה בקבלת חברי משק בית: {e}")
@@ -95,5 +102,14 @@ def is_household_owner(user_id, household_id):
     Returns:
         bool: האם המשתמש הוא הבעלים
     """
-    household_info = get_household_info(household_id)
-    return household_info and str(household_info.get('owner_id', '')) == str(user_id)
+    try:
+        # וודא שמזהה המשתמש הוא מחרוזת
+        user_id_str = str(user_id)
+        
+        query = "SELECT owner_id FROM households WHERE household_id = %s"
+        result = execute_query(query, (household_id,), fetch=True, fetch_one=True)
+        
+        return result and str(result['owner_id']) == user_id_str
+    except Exception as e:
+        print(f"שגיאה בבדיקת בעלות משק בית: {e}")
+        return False
