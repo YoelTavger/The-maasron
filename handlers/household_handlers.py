@@ -1,5 +1,3 @@
-### handlers/household_handlers.py ###
-
 from handlers.keyboards import (
     get_main_keyboard, get_settings_keyboard, get_cancel_keyboard,
     get_household_confirmation_keyboard, get_leave_household_confirmation_keyboard,
@@ -41,6 +39,10 @@ def register_household_handlers(bot):
         
         # קבלת מזהה משק הבית של המשתמש
         household_id = get_user_household(user_id)
+        household_info = get_household_info(household_id)
+        household_name = household_info['name']
+        share_text = f"הצטרף למשק הבית - '{household_name}' בבוט מעשרות! קוד ההצטרפות: `{household_id}`"
+        share_url = f"https://t.me/share/url?url={share_text}"
         
         if not household_id:
             bot.send_message(chat_id, "⚠️ אינך משויך למשק בית. לחץ על '⚙️ הגדרות' כדי ליצור או להצטרף למשק בית.", reply_markup=get_settings_keyboard())
@@ -84,8 +86,8 @@ def register_household_handlers(bot):
                 info_text += f"""\n👑 אתה הבעלים של משק בית זה
 
 קוד הצטרפות למשק הבית:
-{household_id}
-שתף קוד זה עם בני משפחתך כדי שיוכלו להצטרף למשק הבית שלך.
+`{household_id}`
+[שתף]({share_url}) קוד זה עם בני משפחתך כדי שיוכלו להצטרף למשק הבית שלך.
 """
             
             bot.send_message(chat_id, info_text, parse_mode="Markdown", reply_markup=get_settings_keyboard())
@@ -137,15 +139,17 @@ def register_household_handlers(bot):
             
             # יצירת קוד הצטרפות למשק הבית (משתמש במזהה של משק הבית)
             join_code = household_id
+            share_text = f"הצטרף למשק הבית - '{household_name}' בבוט מעשרות! קוד ההצטרפות: `{join_code}`"
+            share_url = f"https://t.me/share/url?url={share_text}"
             
             confirmation = f"""✅ משק הבית '{household_name}' נוצר בהצלחה!
 
 👑 אתה הבעלים של משק בית זה.
 
 הנה קוד ההצטרפות למשק הבית שלך:
-{join_code}
+`{join_code}`
 
-שתף קוד זה עם בני משפחתך כדי שיוכלו להצטרף למשק הבית שלך.
+[שתף]({share_url}) קוד זה עם בני משפחתך כדי שיוכלו להצטרף למשק הבית שלך.
 """
             bot.send_message(chat_id, confirmation, parse_mode="Markdown", reply_markup=get_settings_keyboard())
         else:

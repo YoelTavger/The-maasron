@@ -73,7 +73,15 @@ def register_stats_handlers(bot):
                 
                 if user_stats['maasrot']:
                     for i, maaser in enumerate(user_stats['maasrot'], 1):
-                        details += f"{i}. 💰 {format_currency(maaser['amount'])} - {maaser['source']}\n"
+                        # הוספת שורת פתיחה לכל מעשר עם מספרו
+                        details += f"{i}. "
+                        
+                        # הצגת שם התורם בתצוגת משק בית - כעת בכתב מודגש לפני סכום המעשר
+                        if household and 'contributor' in maaser:
+                            details += f"*👤 {maaser['contributor']}* \n "
+                        
+                        # פרטי המעשר
+                        details += f"💰 {format_currency(maaser['amount'])} - {maaser['source']}\n"
                         details += f"   📅 תאריך: {maaser['date']}\n"
                         if maaser['deadline']:
                             details += f"   🔔 יעד: {maaser['deadline']}\n"
@@ -81,20 +89,28 @@ def register_stats_handlers(bot):
                 else:
                     details += "🔍 אין מעשרות רשומים."
                 
-                bot.send_message(chat_id, details)
+                bot.send_message(chat_id, details, parse_mode="Markdown")
             
             elif detail_type == 'donations':
                 details = "🧾 פירוט תרומות שבוצעו:\n\n"
                 
                 if user_stats['donations']:
                     for i, donation in enumerate(user_stats['donations'], 1):
-                        details += f"{i}. 💸 {format_currency(donation['amount'])} - {donation['purpose']}\n"
-                        details += f"   📅 תאריך: {donation['date']}\n"
-                        details += f"   💳 אמצעי: {donation['method']}\n"
+                        # הוספת שורת פתיחה לכל תרומה עם מספרה
+                        details += f"{i}. "
+                        
+                        # הצגת שם התורם בתצוגת משק בית - כעת בכתב מודגש לפני סכום התרומה
+                        if household and 'contributor' in donation:
+                            details += f"*👤 ע''י {donation['contributor']}* \n "
+                        
+                        # פרטי התרומה
+                        details += f"   💸 {format_currency(donation['amount'])} - {donation['purpose']}\n"
+                        details += f"    📅 תאריך: {donation['date']}\n"
+                        details += f"    💳 אמצעי: {donation['method']}\n"
                         details += "\n"
                 else:
                     details += "🔍 אין תרומות רשומות."
                 
-                bot.send_message(chat_id, details)
+                bot.send_message(chat_id, details, parse_mode="Markdown")
         else:
             bot.send_message(chat_id, "⚠️ אירעה שגיאה בטעינת הנתונים. נסה שוב מאוחר יותר.")

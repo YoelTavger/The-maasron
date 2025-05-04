@@ -7,11 +7,19 @@ load_dotenv()
 # טוקן API לבוט
 API_TOKEN = os.getenv('API_TOKEN')
 
-# נתיב לתיקיית נתונים
-DATA_DIR = os.getenv('DATA_DIR', 'data')
+# הגדרות למסד נתונים PostgreSQL
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT', '5432')
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
 
-# קבצים לשמירת נתונים
-USERS_FILE = os.path.join(DATA_DIR, 'users.csv')
-MAASROT_FILE = os.path.join(DATA_DIR, 'maasrot.csv')
-DONATIONS_FILE = os.path.join(DATA_DIR, 'donations.csv')
-HOUSEHOLDS_FILE = os.path.join(DATA_DIR, 'households.csv')
+# הגדרות נוספות
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+LOG_DIR = os.getenv('LOG_DIR', 'logs')
+
+# הגדרות לסביבת Render
+IS_RENDER = os.getenv('RENDER', 'false').lower() == 'true'
+WEBHOOK_URL = os.getenv('WEBHOOK_URL')
+PORT = int(os.getenv('PORT', 10000))
+
