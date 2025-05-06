@@ -2,13 +2,15 @@ import telebot
 import os
 import time
 from config import API_TOKEN, IS_RENDER, WEBHOOK_URL, PORT
-from database.connection import init_database, test_connection
+from database.connection import execute_query, init_database, test_connection
 from database.reset_database import reset_database
 from handlers.common import register_handlers
 from handlers.maaser_handlers import register_maaser_handlers
 from handlers.donation_handlers import register_donation_handlers
 from handlers.household_handlers import register_household_handlers
 from handlers.stats_handlers import register_stats_handlers
+from handlers.keep_alive import setup_keep_alive
+
 
 def main():
     """
@@ -24,12 +26,18 @@ def main():
         raise ValueError("לא ניתן להתחבר למסד הנתונים. בדוק את פרטי ההתחברות ב-ENV.")
     
     # מוחק מסד נתונים
-    #reset_database()
+    # reset_database()
+
+    # בדיקת חיבור למסד נתונים
+    # test_database_content()
+    
+    # הזנת נתונים ידנית
+    # insert_maaser_data()
 
     # אתחול מסד הנתונים
-    print("מאתחל מסד נתונים...")
-    init_database()
-    
+    # print("מאתחל מסד נתונים...")
+    # init_database()
+
     # יצירת מופע הבוט
     bot = telebot.TeleBot(API_TOKEN)
     
@@ -59,6 +67,12 @@ def main():
                 webhook_url = f"https://{os.environ.get('RENDER_SERVICE_NAME')}.onrender.com/{API_TOKEN}"
             else:
                 webhook_url = WEBHOOK_URL
+                
+            # הפעלת מנגנון Keep-Alive עם כתובת ה-webhook
+            # הוצא את חלק הנתיב מ-webhook_url כדי לקבל רק את כתובת הבסיס
+            base_url = webhook_url.split('/' + API_TOKEN)[0]
+            print(f"מפעיל מנגנון Keep-Alive עם URL: {base_url}")
+            setup_keep_alive(base_url)
             
             # הסרת webhook קיים והגדרת webhook חדש
             bot.remove_webhook()
