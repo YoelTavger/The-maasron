@@ -27,7 +27,7 @@ def setup_keep_alive(app_url=None):
                 print(f"[Keep-Alive] שגיאה בביצוע פעולת שמירה על עירנות: {str(e)}")
             
             # המתנה של 10 דקות (600 שניות)
-            time.sleep(6)
+            time.sleep(840)
     
     # יצירת thread נפרד שירוץ ברקע
     keep_alive_thread = threading.Thread(target=keep_alive_job, daemon=True)
