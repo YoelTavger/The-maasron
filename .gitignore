@@ -33,3 +33,5 @@ wheels/
 *.log
 *.tmp
 .DS_Store
+
+.vscode/
