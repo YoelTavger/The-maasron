@@ -28,10 +28,10 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+.vscode/
+
 
 # לוגים וקבצים זמניים
 *.log
 *.tmp
 .DS_Store
-
-.vscode/
