@@ -3,7 +3,6 @@
 """
 
 from datetime import datetime
-import asyncio
 import time
 
 def validate_date_format(date_str, format_str='%d-%m-%Y'):
