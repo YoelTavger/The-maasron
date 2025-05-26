@@ -87,12 +87,8 @@ def register_maaser_handlers(bot):
                 bot.register_next_step_handler(msg, process_maaser_deadline)
                 return
         
-        # הצגת הודעת טעינה
-        loading_msg = show_loading_message(bot, chat_id, "שומר מעשר", duration=2)
-        
+        # שמירת המעשר במסד הנתונים
         try:
-            # המתנה לסיום האנימציה
-            time.sleep(2.5)
             # הוספת המעשר למסד הנתונים
             amount = bot.temp_data[chat_id]['amount']
             source = bot.temp_data[chat_id]['source']
@@ -106,19 +102,15 @@ def register_maaser_handlers(bot):
                 if deadline:
                     confirmation += f"📅 תאריך יעד: {deadline}"
                 
-                bot.edit_message_text(confirmation, chat_id, loading_msg.message_id)
+                bot.send_message(chat_id, confirmation)
                 time.sleep(2)
                 bot.send_message(chat_id, "חזרה לתפריט הראשי:", reply_markup=get_main_keyboard())
             else:
-                bot.edit_message_text("⚠️ אירעה שגיאה בשמירת המעשר.", chat_id, loading_msg.message_id)
+                bot.send_message(chat_id, "⚠️ אירעה שגיאה בשמירת המעשר.")
                 time.sleep(1)
                 bot.send_message(chat_id, "חזרה לתפריט הראשי:", reply_markup=get_main_keyboard())
         except Exception as e:
             print(f"שגיאה בשמירת מעשר: {e}")
             send_error_message(bot, chat_id, "מסד נתונים")
-            try:
-                bot.delete_message(chat_id, loading_msg.message_id)
-            except:
-                pass
             time.sleep(1)
             bot.send_message(chat_id, "חזרה לתפריט הראשי:", reply_markup=get_main_keyboard())

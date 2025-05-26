@@ -102,13 +102,13 @@ def register_stats_handlers(bot):
                             
                             # הצגת שם התורם בתצוגת משק בית - כעת בכתב מודגש לפני סכום המעשר
                             if household and 'contributor' in maaser:
-                                details += f"*👤 {maaser['contributor']}* \n "
+                                details += f" 👤 *ע''י {maaser['contributor']}* \n "
                             
                             # פרטי המעשר
-                            details += f"💰 {format_currency(maaser['amount'], user_currency)} - {maaser['source']}\n"
-                            details += f"   📅 תאריך: {maaser['date']}\n"
+                            details += f"    💰 {format_currency(maaser['amount'], user_currency)} - {maaser['source']}\n"
+                            details += f"     📅 תאריך: {maaser['date']}\n"
                             if maaser['deadline']:
-                                details += f"   🔔 יעד: {maaser['deadline']}\n"
+                                details += f"     🔔 יעד: {maaser['deadline']}\n"
                             details += "\n"
                     else:
                         details += "🔍 אין מעשרות רשומים."
@@ -125,7 +125,7 @@ def register_stats_handlers(bot):
                             
                             # הצגת שם התורם בתצוגת משק בית - כעת בכתב מודגש לפני סכום התרומה
                             if household and 'contributor' in donation:
-                                details += f"*👤 ע''י {donation['contributor']}* \n "
+                                details += f"👤 *ע''י {donation['contributor']}* \n "
                             
                             # פרטי התרומה
                             details += f"   💸 {format_currency(donation['amount'], user_currency)} - {donation['purpose']}\n"
