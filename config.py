@@ -19,3 +19,5 @@ IS_RENDER = os.getenv('RENDER', 'false').lower() == 'true'
 WEBHOOK_URL = os.getenv('WEBHOOK_URL')
 PORT = int(os.getenv('PORT', 10000))
 
+# הגדרות מנהל הבוט
+ADMIN_USER_ID = os.getenv('ADMIN_USER_ID')  # מזהה המנהל לקבלת דוחות ומעקב

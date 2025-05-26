@@ -1,4 +1,5 @@
 from database.connection import execute_query
+from utils.helpers import format_date
 
 def get_stats(user_id, household=False):
     """
@@ -12,7 +13,7 @@ def get_stats(user_id, household=False):
         dict: סטטיסטיקות המשתמש או משק הבית
     """
     try:
-        # וודא שמזהה המשתמש הוא מחרוזת
+        # וודא שمזהה המשתמש הוא מחרוזת
         user_id_str = str(user_id)
         
         # קבלת מזהה משק הבית של המשתמש אם נדרש
@@ -37,23 +38,23 @@ def get_stats(user_id, household=False):
             member_ids = [str(member['user_id']) for member in household_members]
             member_map = {str(m['user_id']): get_member_display_name(m) for m in household_members}
             
-            # קבלת מעשרות של כל חברי משק הבית
+            # קבלת מעשרות של כל חברי משק הבית (מהישן לחדש)
             query = """
                 SELECT m.*, u.first_name, u.last_name, u.username
                 FROM maasrot m
                 JOIN users u ON m.user_id = u.user_id
                 WHERE m.user_id = ANY(%s)
-                ORDER BY m.maaser_date DESC
+                ORDER BY m.maaser_date ASC
             """
             maaser_results = execute_query(query, (member_ids,), fetch=True)
             
-            # קבלת תרומות של כל חברי משק הבית
+            # קבלת תרומות של כל חברי משק הבית (מהישן לחדש)
             query = """
                 SELECT d.*, u.first_name, u.last_name, u.username
                 FROM donations d
                 JOIN users u ON d.user_id = u.user_id
                 WHERE d.user_id = ANY(%s)
-                ORDER BY d.donation_date DESC
+                ORDER BY d.donation_date ASC
             """
             donation_results = execute_query(query, (member_ids,), fetch=True)
             
@@ -65,8 +66,8 @@ def get_stats(user_id, household=False):
                     'id': row['id'],
                     'amount': float(row['amount']),
                     'source': row['source'],
-                    'date': row['maaser_date'],
-                    'deadline': row['deadline'],
+                    'date': format_date(row['maaser_date']),
+                    'deadline': format_date(row['deadline']) if row['deadline'] else None,
                     'contributor': contributor_name  # הוספת שם התורם
                 })
             
@@ -78,7 +79,7 @@ def get_stats(user_id, household=False):
                     'id': row['id'],
                     'amount': float(row['amount']),
                     'purpose': row['purpose'],
-                    'date': row['donation_date'],
+                    'date': format_date(row['donation_date']),
                     'method': row['donation_method'],
                     'contributor': contributor_name  # הוספת שם התורם
                 })
@@ -88,12 +89,12 @@ def get_stats(user_id, household=False):
             total_donated = sum(item['amount'] for item in donations)
             
         else:
-            # קבלת מעשרות של המשתמש
-            query = "SELECT * FROM maasrot WHERE user_id = %s ORDER BY maaser_date DESC"
+            # קבלת מעשרות של המשתמש (מהישן לחדש)
+            query = "SELECT * FROM maasrot WHERE user_id = %s ORDER BY maaser_date ASC"
             maaser_results = execute_query(query, (user_id_str,), fetch=True)
             
-            # קבלת תרומות של המשתמש
-            query = "SELECT * FROM donations WHERE user_id = %s ORDER BY donation_date DESC"
+            # קבלת תרומות של המשתמש (מהישן לחדש)
+            query = "SELECT * FROM donations WHERE user_id = %s ORDER BY donation_date ASC"
             donation_results = execute_query(query, (user_id_str,), fetch=True)
             
             # עיבוד תוצאות המעשרות
@@ -102,8 +103,8 @@ def get_stats(user_id, household=False):
                     'id': row['id'],
                     'amount': float(row['amount']),
                     'source': row['source'],
-                    'date': row['maaser_date'],
-                    'deadline': row['deadline']
+                    'date': format_date(row['maaser_date']),
+                    'deadline': format_date(row['deadline']) if row['deadline'] else None
                 })
             
             # עיבוד תוצאות התרומות
@@ -112,7 +113,7 @@ def get_stats(user_id, household=False):
                     'id': row['id'],
                     'amount': float(row['amount']),
                     'purpose': row['purpose'],
-                    'date': row['donation_date'],
+                    'date': format_date(row['donation_date']),
                     'method': row['donation_method']
                 })
             

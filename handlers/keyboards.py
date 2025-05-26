@@ -32,7 +32,7 @@ def get_main_keyboard():
 
 def get_settings_keyboard():
     """
-    יוצר מקלדת הגדרות
+    יוצר מקלדת הגדרות מורחבת
     
     Returns:
         ReplyKeyboardMarkup: מקלדת הגדרות
@@ -42,10 +42,30 @@ def get_settings_keyboard():
     btn2 = KeyboardButton('➕ הצטרפות למשק בית')
     btn3 = KeyboardButton('🚪 יציאה ממשק בית')
     btn4 = KeyboardButton('ℹ️ פרטי משק בית')
-    btn5 = KeyboardButton('🔙 חזרה לתפריט הראשי')
+    btn5 = KeyboardButton('👤 שינוי שם')
+    btn6 = KeyboardButton('💱 שינוי מטבע')
+    btn7 = KeyboardButton('🔙 חזרה לתפריט הראשי')
     markup.add(btn1, btn2)
     markup.add(btn3, btn4)
-    markup.add(btn5)
+    markup.add(btn5, btn6)
+    markup.add(btn7)
+    return markup
+
+def get_currency_keyboard():
+    """
+    יוצר מקלדת לבחירת מטבע
+    
+    Returns:
+        InlineKeyboardMarkup: מקלדת בחירת מטבע
+    """
+    markup = InlineKeyboardMarkup()
+    markup.row(
+        InlineKeyboardButton("₪ שקל ישראלי", callback_data="currency_ILS"),
+        InlineKeyboardButton("$ דולר אמריקאי", callback_data="currency_USD")
+    )
+    markup.row(
+        InlineKeyboardButton("❌ ביטול", callback_data="currency_cancel")
+    )
     return markup
 
 def get_payment_method_keyboard():
