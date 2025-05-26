@@ -13,9 +13,9 @@ def reset_database():
         
         # פקודות למחיקת כל הטבלאות בסדר נכון (בגלל מפתחות זרים)
         drop_tables_queries = [
-            "DROP TABLE IF EXISTS donations",
-            "DROP TABLE IF EXISTS maasrot",
-            "DROP TABLE IF EXISTS households",
+            # "DROP TABLE IF EXISTS donations",
+            # "DROP TABLE IF EXISTS maasrot",
+            # "DROP TABLE IF EXISTS households",
             "DROP TABLE IF EXISTS users"
         ]
         

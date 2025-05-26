@@ -1,5 +1,6 @@
 from database.connection import execute_query
 from datetime import datetime
+from utils.helpers import format_date
 
 def add_donation(user_id, amount, purpose, method):
     """
@@ -38,7 +39,7 @@ def add_donation(user_id, amount, purpose, method):
 
 def get_user_donations(user_id):
     """
-    מחזיר את רשימת התרומות של משתמש מסוים
+    מחזיר את רשימת התרומות של משתמש מסוים (מהישן לחדש)
     
     Args:
         user_id: מזהה המשתמש
@@ -50,7 +51,7 @@ def get_user_donations(user_id):
         # וודא שמזהה המשתמש הוא מחרוזת
         user_id_str = str(user_id)
         
-        query = "SELECT * FROM donations WHERE user_id = %s ORDER BY donation_date DESC"
+        query = "SELECT * FROM donations WHERE user_id = %s ORDER BY donation_date ASC"
         donation_results = execute_query(query, (user_id_str,), fetch=True)
         
         donations = []
@@ -59,7 +60,7 @@ def get_user_donations(user_id):
                 'id': row['id'],
                 'amount': float(row['amount']),
                 'purpose': row['purpose'],
-                'date': row['donation_date'],
+                'date': format_date(row['donation_date']),
                 'method': row['donation_method']
             })
         

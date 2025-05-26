@@ -1,5 +1,6 @@
 from database.connection import execute_query
 from datetime import datetime
+from utils.helpers import format_date
 
 def add_maaser(user_id, amount, source, deadline=None):
     """
@@ -37,7 +38,7 @@ def add_maaser(user_id, amount, source, deadline=None):
 
 def get_user_maasrot(user_id):
     """
-    מחזיר את רשימת המעשרות של משתמש מסוים
+    מחזיר את רשימת המעשרות של משתמש מסוים (מהישן לחדש)
     
     Args:
         user_id: מזהה המשתמש
@@ -49,7 +50,7 @@ def get_user_maasrot(user_id):
         # וודא שמזהה המשתמש הוא מחרוזת
         user_id_str = str(user_id)
         
-        query = "SELECT * FROM maasrot WHERE user_id = %s ORDER BY maaser_date DESC"
+        query = "SELECT * FROM maasrot WHERE user_id = %s ORDER BY maaser_date ASC"
         maaser_results = execute_query(query, (user_id_str,), fetch=True)
         
         maasrot = []
@@ -58,8 +59,8 @@ def get_user_maasrot(user_id):
                 'id': row['id'],
                 'amount': float(row['amount']),
                 'source': row['source'],
-                'date': row['maaser_date'],
-                'deadline': row['deadline']
+                'date': format_date(row['maaser_date']),
+                'deadline': format_date(row['deadline']) if row['deadline'] else None
             })
         
         return maasrot

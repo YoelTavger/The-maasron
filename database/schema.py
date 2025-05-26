@@ -10,8 +10,20 @@ def create_tables(conn):
         first_name TEXT,
         last_name TEXT,
         join_date TEXT,
-        household_id TEXT
+        household_id TEXT,
+        currency TEXT DEFAULT 'ILS'
     )
+    ''')
+    
+    # הוספת עמודת currency למשתמשים קיימים (אם לא קיימת)
+    cursor.execute('''
+    DO $$ 
+    BEGIN 
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                      WHERE table_name='users' AND column_name='currency') THEN
+            ALTER TABLE users ADD COLUMN currency TEXT DEFAULT 'ILS';
+        END IF;
+    END $$;
     ''')
     
     # יצירת טבלת מעשרות
